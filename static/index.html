@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AgroStock Ganadero | Control Fácil de Campo</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#166534">
+
+  <!-- Hoja de Estilos Externa Personalizada -->
+  <link rel="stylesheet" href="/static/styles.css">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            field: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full flex flex-col text-slate-900 antialiased font-sans select-none sm:select-auto">
+
+  <!-- ==================== ENCABEZADO SIMPLE ==================== -->
+  <header class="bg-field-900 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-emerald-500/20 p-2.5 rounded-2xl border border-emerald-400/40">
+          <i data-lucide="beef" class="w-7 h-7 text-emerald-300"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight">AgroStock</h1>
+            <span class="bg-emerald-500 text-slate-950 text-xs px-2.5 py-0.5 rounded-full font-black uppercase">Fácil</span>
+          </div>
+          <p class="text-xs sm:text-sm text-emerald-200 font-semibold">Estancia Santa María</p>
+        </div>
+      </div>
+
+      <!-- Acciones Rápidas del Encabezado: Backup y Excel -->
+      <div class="flex items-center space-x-2">
+        <button onclick="downloadExcelReport()" class="p-2 sm:px-3 sm:py-1.5 bg-emerald-700/60 hover:bg-emerald-600 rounded-xl transition active:scale-95 text-white flex items-center space-x-1.5 border border-emerald-500/40" title="Descargar Planilla Oficial de Hacienda para Excel">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-300"></i>
+          <span class="text-xs font-bold hidden md:inline">Planilla Excel</span>
+        </button>
+
+        <button onclick="downloadBackupDb()" class="p-2 sm:px-3 sm:py-1.5 bg-field-800 hover:bg-field-700 rounded-xl transition active:scale-95 text-white flex items-center space-x-1.5 border border-field-600" title="Descargar copia de seguridad completa (ganaderia.db)">
+          <i data-lucide="hard-drive-download" class="w-4 h-4 text-amber-300"></i>
+          <span class="text-xs font-bold hidden md:inline">Copia de Seguridad</span>
+        </button>
+
+        <button onclick="refreshData()" class="p-2 bg-field-700 hover:bg-field-600 rounded-xl transition active:scale-95 text-white flex items-center space-x-1 border border-field-500" title="Actualizar datos">
+          <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Menú de Pestañas con Letras e Íconos Grandes -->
+    <nav class="bg-field-950 border-t border-field-800 px-2 overflow-x-auto flex space-x-1 sm:space-x-2">
+      <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab px-3 sm:px-5 py-3.5 text-sm sm:text-base font-bold text-white border-b-4 border-emerald-400 flex items-center space-x-2 whitespace-nowrap">
+        <i data-lucide="home" class="w-5 h-5 text-emerald-400"></i>
+        <span>Inicio</span>
+      </button>
+
+      <button onclick="switchTab('manga')" id="tab-manga" class="nav-tab px-4 sm:px-6 py-3.5 text-sm sm:text-base font-black text-amber-300 hover:text-white border-b-4 border-transparent flex items-center space-x-2 whitespace-nowrap bg-amber-950/40 rounded-t-lg">
+        <i data-lucide="smartphone" class="w-5 h-5 text-amber-400"></i>
+        <span>🤠 Manga (Conteo Rápido)</span>
+      </button>
+
+      <button onclick="switchTab('hacienda')" id="tab-hacienda" class="nav-tab px-3 sm:px-5 py-3.5 text-sm sm:text-base font-bold text-emerald-200 hover:text-white border-b-4 border-transparent flex items-center space-x-2 whitespace-nowrap">
+        <i data-lucide="layers" class="w-5 h-5"></i>
+        <span>Mis Vacas</span>
+      </button>
+
+      <button onclick="switchTab('farmacia')" id="tab-farmacia" class="nav-tab px-3 sm:px-5 py-3.5 text-sm sm:text-base font-bold text-emerald-200 hover:text-white border-b-4 border-transparent flex items-center space-x-2 whitespace-nowrap">
+        <i data-lucide="package" class="w-5 h-5"></i>
+        <span>Comida y Remedios</span>
+      </button>
+
+      <button onclick="switchTab('sanidad')" id="tab-sanidad" class="nav-tab px-3 sm:px-5 py-3.5 text-sm sm:text-base font-bold text-emerald-200 hover:text-white border-b-4 border-transparent flex items-center space-x-2 whitespace-nowrap">
+        <i data-lucide="syringe" class="w-5 h-5"></i>
+        <span>Vacunar / Curar</span>
+      </button>
+
+      <button onclick="switchTab('tratamientos')" id="tab-tratamientos" class="nav-tab px-3 sm:px-5 py-3.5 text-sm sm:text-base font-bold text-emerald-200 hover:text-white border-b-4 border-transparent flex items-center space-x-2 whitespace-nowrap">
+        <i data-lucide="clipboard-list" class="w-5 h-5 text-emerald-300"></i>
+        <span>Libro Sanitario</span>
+      </button>
+
+      <button onclick="switchTab('historial')" id="tab-historial" class="nav-tab px-3 sm:px-5 py-3.5 text-sm sm:text-base font-bold text-emerald-200 hover:text-white border-b-4 border-transparent flex items-center space-x-2 whitespace-nowrap">
+        <i data-lucide="file-text" class="w-5 h-5"></i>
+        <span>Historial</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-3 sm:p-6 overflow-y-auto">
+
+    <!-- ==================== PESTAÑA 1: INICIO (DASHBOARD) ==================== -->
+    <section id="view-dashboard" class="tab-content space-y-6">
+      
+      <!-- Alerta Roja: No mandar a frigorífico si hay remedio puesto -->
+      <div id="withdrawalAlertBox" class="hidden bg-rose-50 border-2 border-rose-500 p-4 sm:p-5 rounded-2xl shadow-sm">
+        <div class="flex items-start space-x-3">
+          <div class="bg-rose-500 text-white p-2 rounded-xl flex-shrink-0">
+            <i data-lucide="alert-octagon" class="w-7 h-7"></i>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-base sm:text-lg font-black text-rose-900 uppercase tracking-wide">⚠️ ¡ATENCIÓN! Animales con Remedio Puesto (No enviar a faena)</h3>
+            <p class="text-xs sm:text-sm text-rose-700 mt-1 font-medium">Debes esperar los días indicados antes de poder vender o faenar estos animales:</p>
+            <div id="withdrawalAlertList" class="mt-3 space-y-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuadros Grandes de Información -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <!-- Total Animales -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border-2 border-slate-200 flex flex-col justify-between">
+          <span class="text-xs sm:text-sm font-bold text-slate-500 uppercase">Total Animales</span>
+          <div class="my-2">
+            <span id="kpiTotalHeads" class="text-3xl sm:text-5xl font-black text-slate-900">0</span>
+            <span class="text-xs sm:text-sm font-bold text-slate-500 block sm:inline">cabezas</span>
+          </div>
+          <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-1 rounded-lg w-max">En el campo</span>
+        </div>
+
+        <!-- Potreros -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border-2 border-slate-200 flex flex-col justify-between">
+          <span class="text-xs sm:text-sm font-bold text-slate-500 uppercase">Potreros</span>
+          <div class="my-2">
+            <span id="kpiTotalPaddocks" class="text-3xl sm:text-5xl font-black text-slate-900">0</span>
+            <span class="text-xs sm:text-sm font-bold text-slate-500 block sm:inline">divisiones</span>
+          </div>
+          <span id="kpiHectares" class="text-xs text-slate-600 font-semibold">1.050 ha totales</span>
+        </div>
+
+        <!-- Carga Animal -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border-2 border-slate-200 flex flex-col justify-between">
+          <span class="text-xs sm:text-sm font-bold text-slate-500 uppercase">Pasto / Carga</span>
+          <div class="my-2">
+            <span id="kpiStockingRate" class="text-3xl sm:text-5xl font-black text-blue-700">0.0</span>
+            <span class="text-xs sm:text-sm font-bold text-slate-500 block sm:inline">vacas por ha</span>
+          </div>
+          <span class="text-xs text-blue-700 font-bold bg-blue-50 px-2 py-1 rounded-lg w-max">Nivel Óptimo</span>
+        </div>
+
+        <!-- Comida o Remedios Bajos -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border-2 border-slate-200 flex flex-col justify-between">
+          <span class="text-xs sm:text-sm font-bold text-slate-500 uppercase">Falta Comprar</span>
+          <div class="my-2">
+            <span id="kpiCriticalSupplies" class="text-3xl sm:text-5xl font-black text-rose-600">0</span>
+            <span class="text-xs sm:text-sm font-bold text-slate-500 block sm:inline">productos</span>
+          </div>
+          <span class="text-xs text-rose-700 font-bold bg-rose-50 px-2 py-1 rounded-lg w-max">Stock bajo</span>
+        </div>
+      </div>
+
+      <!-- Botón de Acceso Gigante al Modo Manga -->
+      <div class="bg-gradient-to-r from-amber-500 to-amber-600 p-5 rounded-2xl shadow-md text-white flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-4">
+          <div class="bg-white/20 p-3 rounded-2xl">
+            <i data-lucide="hand" class="w-10 h-10 text-white"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-black">¿Estás en el corral o la manga?</h3>
+            <p class="text-sm text-amber-100 font-medium">Usa la pantalla táctil de conteo rápido con botones grandes para sumar nacimientos, muertes o traslados.</p>
+          </div>
+        </div>
+        <button onclick="switchTab('manga')" class="w-full sm:w-auto px-6 py-3.5 bg-slate-950 hover:bg-slate-900 text-amber-300 font-black text-lg rounded-xl shadow-lg transition active:scale-95 whitespace-nowrap">
+          Abrir Conteo Rápido ➔
+        </button>
+      </div>
+
+      <!-- Estado de los Potreros -->
+      <div>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-lg sm:text-xl font-black text-slate-900 flex items-center space-x-2">
+            <i data-lucide="map-pin" class="w-6 h-6 text-emerald-700"></i>
+            <span>¿Dónde están los animales? (Potreros)</span>
+          </h2>
+          <button onclick="openNewPaddockModal()" class="text-xs sm:text-sm bg-slate-900 text-white px-3.5 py-2 rounded-xl font-bold hover:bg-slate-800">
+            + Nuevo Potrero
+          </button>
+        </div>
+        <div id="paddocksGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+      </div>
+
+      <!-- Resumen por Categorías -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border-2 border-slate-200">
+        <h3 class="text-base font-black text-slate-800 uppercase tracking-wider mb-3">Animales por Tipo</h3>
+        <div id="categoriesList" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3"></div>
+      </div>
+
+    </section>
+
+    <!-- ==================== PESTAÑA 2: MODO MANGA / CONTEO FLEXIBLE ==================== -->
+    <section id="view-manga" class="tab-content hidden space-y-5 max-w-xl mx-auto">
+      
+      <!-- Encabezado Amigable con Conmutador de Audio -->
+      <div class="bg-amber-100 border-2 border-amber-400 p-4 rounded-2xl text-amber-950 flex items-center justify-between gap-2">
+        <div class="flex items-center space-x-3">
+          <span class="text-3xl">🤠</span>
+          <div>
+            <h2 class="font-black text-lg sm:text-xl leading-tight">Conteo Rápido de Corral</h2>
+            <p class="text-xs sm:text-sm text-amber-800 font-semibold">Elige cuántas vacas son y toca el botón correspondiente.</p>
+          </div>
+        </div>
+        <!-- Botón de Audio en Manga -->
+        <button id="mangaSoundToggle" onclick="toggleMangaSound()" class="px-3 py-2 bg-amber-200 hover:bg-amber-300 active:scale-95 text-amber-950 font-black text-xs rounded-xl border border-amber-400 flex items-center space-x-1.5 transition flex-shrink-0" title="Activar/Desactivar confirmación por voz y sonido">
+          <i id="mangaSoundIcon" data-lucide="volume-2" class="w-4 h-4"></i>
+          <span id="mangaSoundText" class="hidden sm:inline">Voz / Sonido</span>
+        </button>
+      </div>
+
+      <!-- PASO 1: Elegir Lote -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl shadow border-2 border-slate-300 space-y-2">
+        <label class="block text-sm font-black uppercase text-slate-700">
+          Paso 1: ¿Con qué lote estás trabajando?
+        </label>
+        <select id="mangaBatchSelect" onchange="onMangaBatchChange()" class="w-full text-base sm:text-lg font-bold p-3.5 bg-slate-50 border-2 border-slate-400 rounded-xl focus:border-emerald-600 outline-none">
+          <!-- Opciones cargadas dinámicamente -->
+        </select>
+        <div class="flex justify-between text-xs sm:text-sm font-bold text-slate-600 bg-slate-100 p-2.5 rounded-xl">
+          <span id="mangaPaddockName">📍 Potrero: -</span>
+          <span id="mangaCategoryName">🏷️ Tipo: -</span>
+        </div>
+      </div>
+
+      <!-- VISOR GIGANTE DEL STOCK ACTUAL -->
+      <div class="bg-slate-950 text-white p-6 sm:p-7 rounded-3xl text-center shadow-xl border-4 border-slate-800">
+        <span class="text-xs sm:text-sm font-black uppercase tracking-widest text-slate-400">Total Actual de este Lote</span>
+        <div id="mangaCounterDisplay" class="text-7xl sm:text-8xl font-black text-emerald-400 my-2 tracking-tight">0</div>
+        <span class="text-sm font-bold text-slate-300">cabezas registradas</span>
+      </div>
+
+      <!-- PASO 2: SELECCIONAR CANTIDAD EXACTA O USAR CHIPS -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl shadow border-2 border-slate-300 space-y-3">
+        <label class="block text-sm font-black uppercase text-slate-700">
+          Paso 2: ¿Cuántas cabezas vas a registrar?
+        </label>
+
+        <!-- Selector con botones + / - y campo para escribir cualquier número -->
+        <div class="flex items-center space-x-2">
+          <button onclick="alterSelectedQty(-1)" class="w-14 h-14 bg-slate-200 active:bg-slate-300 rounded-xl font-black text-2xl flex items-center justify-center text-slate-800 border border-slate-300">
+            -
+          </button>
+          <div class="flex-1 relative">
+            <input type="number" id="mangaQuantityInput" value="1" min="1" max="5000" class="w-full h-14 text-center font-black text-3xl text-slate-900 bg-amber-50 border-2 border-amber-400 rounded-xl focus:outline-none focus:border-amber-600">
+            <span class="absolute right-3 top-4 text-xs font-bold text-slate-500 uppercase">cab</span>
+          </div>
+          <button onclick="alterSelectedQty(1)" class="w-14 h-14 bg-slate-200 active:bg-slate-300 rounded-xl font-black text-2xl flex items-center justify-center text-slate-800 border border-slate-300">
+            +
+          </button>
+        </div>
+
+        <!-- Botones rápidos de cantidad frecuente -->
+        <div class="space-y-1">
+          <span class="text-xs font-bold text-slate-500 uppercase">Toca para poner cantidad rápida:</span>
+          <div class="grid grid-cols-6 gap-1.5 sm:gap-2">
+            <button onclick="setSelectedQty(1)" class="qty-btn py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 font-black text-sm rounded-lg border border-slate-300">1</button>
+            <button onclick="setSelectedQty(5)" class="qty-btn py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 font-black text-sm rounded-lg border border-slate-300">5</button>
+            <button onclick="setSelectedQty(10)" class="qty-btn py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 font-black text-sm rounded-lg border border-slate-300">10</button>
+            <button onclick="setSelectedQty(25)" class="qty-btn py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 font-black text-sm rounded-lg border border-slate-300">25</button>
+            <button onclick="setSelectedQty(50)" class="qty-btn py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 font-black text-sm rounded-lg border border-slate-300">50</button>
+            <button onclick="setSelectedQty(100)" class="qty-btn py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 font-black text-sm rounded-lg border border-slate-300">100</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 3: BOTONES GIGANTES DE ACCIÓN DIRECTA -->
+      <div class="space-y-3">
+        <label class="block text-sm font-black uppercase text-slate-700">
+          Paso 3: ¿Qué pasó con esas cabezas?
+        </label>
+
+        <!-- Botón Verde: Sumar (Nacieron o Entraron) -->
+        <button onclick="executeMangaAction('nacimiento')" class="w-full big-touch-btn bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white p-4 rounded-2xl shadow-md font-black text-xl flex items-center justify-between border-b-4 border-emerald-800 transition">
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl">🌱</span>
+            <div class="text-left">
+              <div class="leading-tight">SUMAR AL LOTE</div>
+              <div class="text-xs font-semibold text-emerald-100">Nacieron o entraron por compra</div>
+            </div>
+          </div>
+          <span id="btnLabelSumar" class="bg-white/20 px-3 py-1 rounded-xl text-lg">+ 1</span>
+        </button>
+
+        <!-- Botón Rojo: Restar (Murieron o Bajas) -->
+        <button onclick="openMangaDeathModal()" class="w-full big-touch-btn bg-rose-600 hover:bg-rose-700 active:scale-98 text-white p-4 rounded-2xl shadow-md font-black text-xl flex items-center justify-between border-b-4 border-rose-800 transition">
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl">⚠️</span>
+            <div class="text-left">
+              <div class="leading-tight">RESTAR (Murió o Baja)</div>
+              <div class="text-xs font-semibold text-rose-100">Pedirá anotar la causa de muerte</div>
+            </div>
+          </div>
+          <span id="btnLabelRestar" class="bg-white/20 px-3 py-1 rounded-xl text-lg">- 1</span>
+        </button>
+
+        <!-- Botón Azul: Mudar de Potrero -->
+        <button onclick="openMovePaddockModal()" class="w-full big-touch-btn bg-blue-600 hover:bg-blue-700 active:scale-98 text-white p-4 rounded-2xl shadow-md font-black text-xl flex items-center justify-between border-b-4 border-blue-800 transition">
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl">🚚</span>
+            <div class="text-left">
+              <div class="leading-tight">MUDAR DE POTRERO</div>
+              <div class="text-xs font-semibold text-blue-100">Pasar esta cantidad a otro potrero</div>
+            </div>
+          </div>
+          <span id="btnLabelMudar" class="bg-white/20 px-3 py-1 rounded-xl text-lg">Mover 1</span>
+        </button>
+
+        <!-- Botón Púrpura: Venta -->
+        <button onclick="openSaleModal()" class="w-full big-touch-btn bg-purple-700 hover:bg-purple-800 active:scale-98 text-white p-4 rounded-2xl shadow-md font-black text-xl flex items-center justify-between border-b-4 border-purple-900 transition">
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl">💰</span>
+            <div class="text-left">
+              <div class="leading-tight">SE VENDIERON</div>
+              <div class="text-xs font-semibold text-purple-200">Salieron en camión para venta</div>
+            </div>
+          </div>
+          <span id="btnLabelVender" class="bg-white/20 px-3 py-1 rounded-xl text-lg">Vender 1</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================== PESTAÑA 3: HACIENDA Y LOTES ==================== -->
+    <section id="view-hacienda" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900">Mis Lotes de Hacienda</h2>
+          <p class="text-xs sm:text-sm text-slate-500 font-medium">Listado detallado de tropas activas</p>
+        </div>
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button onclick="downloadExcelReport()" class="flex-1 sm:flex-initial bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-3 rounded-xl text-sm font-black flex items-center justify-center space-x-2 shadow">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-300"></i>
+            <span>Descargar Excel</span>
+          </button>
+          <button onclick="openNewBatchModal()" class="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl text-sm sm:text-base font-black flex items-center justify-center space-x-2 shadow">
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            <span>Nuevo Lote</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow border-2 border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 text-xs sm:text-sm font-black uppercase tracking-wider border-b-2 border-slate-200">
+                <th class="py-3.5 px-4">Nombre del Lote</th>
+                <th class="py-3.5 px-4">Tipo</th>
+                <th class="py-3.5 px-4">Potrero</th>
+                <th class="py-3.5 px-4 text-right">Cabezas</th>
+                <th class="py-3.5 px-4 text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="batchesTableBody" class="divide-y divide-slate-200 text-sm sm:text-base font-medium"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PESTAÑA 4: COMIDA Y REMEDIOS (FARMACIA Y ALMACÉN) ==================== -->
+    <section id="view-farmacia" class="tab-content hidden space-y-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900">Comida y Remedios en Galpón</h2>
+          <p class="text-xs sm:text-sm text-slate-500 font-medium">Toca "Dar de comer / Usar" para descontar o "Entró compra" para sumar</p>
+        </div>
+        <button onclick="openSupplyMovementModal()" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-5 py-3 rounded-xl text-base font-black flex items-center justify-center space-x-2 shadow">
+          <i data-lucide="plus" class="w-5 h-5"></i>
+          <span>Registrar Compra General</span>
+        </button>
+      </div>
+
+      <!-- Tarjetas de Insumos con Botones Directos de Usar o Agregar -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="suppliesGrid"></div>
+    </section>
+
+    <!-- ==================== PESTAÑA 5: VACUNAR / CURAR ==================== -->
+    <section id="view-sanidad" class="tab-content hidden space-y-6 max-w-2xl mx-auto">
+      <div class="bg-white p-5 sm:p-7 rounded-3xl shadow-sm border-2 border-slate-200">
+        <h2 class="text-xl font-black text-slate-900 mb-1 flex items-center space-x-2">
+          <span class="text-2xl">💉</span>
+          <span>Anotar Vacunación o Curación</span>
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mb-6 font-medium">Descontará la medicina de la farmacia y te avisará si no se puede faenar.</p>
+
+        <form id="healthForm" onsubmit="submitHealthEvent(event)" class="space-y-4">
+          <!-- 1. Lote -->
+          <div>
+            <label class="block text-sm font-black text-slate-700 mb-1">1. ¿Qué animales vas a curar/vacunar?</label>
+            <select id="healthBatchSelect" onchange="onHealthBatchSelect()" required class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold outline-none focus:border-emerald-600">
+            </select>
+          </div>
+
+          <!-- 2. Medicamento -->
+          <div>
+            <label class="block text-sm font-black text-slate-700 mb-1">2. ¿Qué medicamento o vacuna vas a poner?</label>
+            <select id="healthSupplySelect" onchange="onHealthSupplySelect()" required class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold outline-none focus:border-emerald-600">
+            </select>
+          </div>
+
+          <!-- Cantidad y Dosis -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-black text-slate-700 mb-1">3. ¿Cuántas cabezas tratas?</label>
+              <input type="number" id="healthHeadsTreated" oninput="calculateHealthConsumption()" required min="1" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-xl">
+            </div>
+
+            <div>
+              <label class="block text-sm font-black text-slate-700 mb-1">4. Dosis por cabeza (ml):</label>
+              <input type="number" step="0.5" id="healthDosePerHead" oninput="calculateHealthConsumption()" required min="0.1" value="5.0" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-xl">
+            </div>
+          </div>
+
+          <!-- Total a Descontar -->
+          <div class="p-4 bg-emerald-50 border-2 border-emerald-200 rounded-2xl flex justify-between items-center">
+            <span class="text-sm font-bold text-emerald-900">Total que se gastará:</span>
+            <span id="healthTotalDisplay" class="text-2xl font-black text-emerald-800">0 ml</span>
+          </div>
+
+          <!-- Cuadro de Carencia -->
+          <div id="healthWithdrawalPreview" class="p-4 bg-rose-50 border-2 border-rose-200 rounded-2xl flex items-center justify-between text-xs sm:text-sm">
+            <span class="font-bold text-rose-900">Días de carencia (espera antes de faenar):</span>
+            <span id="healthWithdrawalText" class="font-black text-rose-700 bg-rose-100 px-3 py-1 rounded-xl">-</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Sacar del Galpón:</label>
+              <select id="healthWarehouseSelect" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sm">
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">¿Quién lo aplicó?:</label>
+              <input type="text" id="healthOperatorName" value="Veterinario / Personal" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sm">
+            </div>
+          </div>
+
+          <button type="submit" class="w-full big-touch-btn py-4 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-lg rounded-2xl shadow-lg transition active:scale-98">
+            ✅ Confirmar Tratamiento
+          </button>
+        </form>
+
+        <!-- Acceso rápido al libro sanitario -->
+        <div class="mt-6 pt-5 border-t-2 border-slate-100 flex items-center justify-between">
+          <span class="text-xs sm:text-sm font-bold text-slate-500">¿Quieres revisar todas las aplicaciones anteriores?</span>
+          <button onclick="switchTab('tratamientos')" class="text-xs sm:text-sm font-black text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-xl transition flex items-center space-x-1.5 border border-emerald-200">
+            <span>Ver Tabla Completa</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PESTAÑA 6: LIBRO SANITARIO Y TRATAMIENTOS ==================== -->
+    <section id="view-tratamientos" class="tab-content hidden space-y-5">
+      <!-- Encabezado con Botón de Registrar -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center space-x-2">
+            <span class="text-2xl">📋</span>
+            <span>Libro de Vacunaciones y Tratamientos Sanitarios</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 font-medium">Control veterinario, dosis administradas y períodos de carencia para frigorífico</p>
+        </div>
+        <button onclick="switchTab('sanidad')" class="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-3 rounded-xl text-sm sm:text-base font-black flex items-center justify-center space-x-2 shadow">
+          <i data-lucide="plus-circle" class="w-5 h-5"></i>
+          <span>Anotar Nueva Vacunación</span>
+        </button>
+      </div>
+
+      <!-- Barra de Filtros Interactivos -->
+      <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border-2 border-slate-200 space-y-3">
+        <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+          
+          <!-- Buscador por Texto -->
+          <div class="relative flex-1">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="search" class="w-5 h-5"></i>
+            </span>
+            <input type="text" id="healthSearchInput" oninput="applyHealthFilters()" placeholder="Buscar por nombre de vacuna, medicamento o lote..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-sm sm:text-base outline-none focus:border-emerald-600">
+          </div>
+
+          <!-- Selector de Estado de Carencia -->
+          <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-xl overflow-x-auto scrollbar-none flex-shrink-0">
+            <button onclick="setHealthStatusFilter('all')" id="filterHealthAll" class="px-3 sm:px-4 py-2 rounded-lg font-black text-xs sm:text-sm transition bg-white text-slate-900 shadow-sm whitespace-nowrap">
+              Todos (<span id="countHealthAll">0</span>)
+            </button>
+            <button onclick="setHealthStatusFilter('active')" id="filterHealthActive" class="px-3 sm:px-4 py-2 rounded-lg font-black text-xs sm:text-sm transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+              ⚠️ En Carencia (<span id="countHealthActive">0</span>)
+            </button>
+            <button onclick="setHealthStatusFilter('ready')" id="filterHealthReady" class="px-3 sm:px-4 py-2 rounded-lg font-black text-xs sm:text-sm transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+              ✅ Apto Faena (<span id="countHealthReady">0</span>)
+            </button>
+          </div>
+
+        </div>
+
+        <div class="flex justify-between items-center text-xs font-bold text-slate-500 pt-1">
+          <span id="healthFilterFeedback">Mostrando todos los tratamientos</span>
+          <button onclick="clearHealthFilters()" class="text-emerald-700 hover:underline">Limpiar Filtros</button>
+        </div>
+      </div>
+
+      <!-- Tabla Estructurada de Tratamientos con Ordenamiento por Clic -->
+      <div class="bg-white rounded-2xl shadow border-2 border-slate-200 overflow-hidden">
+        <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 text-xs font-bold text-slate-500 flex items-center justify-between">
+          <span>💡 Toca el texto de cualquier columna para ordenar (A-Z, fechas, cantidades, etc.)</span>
+          <span id="activeSortLabel" class="text-emerald-700 font-extrabold hidden sm:inline">Sin orden activo</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 text-xs sm:text-sm font-black uppercase tracking-wider border-b-2 border-slate-200">
+                <!-- 1. Vacuna -->
+                <th onclick="sortHealthTable('vacuna')" class="py-3.5 px-4 cursor-pointer hover:bg-emerald-100/60 transition select-none" title="Ordenar por Vacuna de la A a la Z">
+                  <div class="flex items-center space-x-1">
+                    <span>Vacuna / Medicamento</span>
+                    <span id="sortIcon-vacuna" class="text-xs font-black text-slate-400">↕</span>
+                  </div>
+                </th>
+
+                <!-- 2. Lote -->
+                <th onclick="sortHealthTable('lote')" class="py-3.5 px-4 cursor-pointer hover:bg-emerald-100/60 transition select-none" title="Ordenar por Lote de la A a la Z">
+                  <div class="flex items-center space-x-1">
+                    <span>Lote Tratado</span>
+                    <span id="sortIcon-lote" class="text-xs font-black text-slate-400">↕</span>
+                  </div>
+                </th>
+
+                <!-- 3. Cantidad -->
+                <th onclick="sortHealthTable('cantidad')" class="py-3.5 px-4 text-center cursor-pointer hover:bg-emerald-100/60 transition select-none" title="Ordenar por Cantidad de cabezas">
+                  <div class="flex items-center justify-center space-x-1">
+                    <span>Cantidad</span>
+                    <span id="sortIcon-cantidad" class="text-xs font-black text-slate-400">↕</span>
+                  </div>
+                </th>
+
+                <!-- 4. Aplicado -->
+                <th onclick="sortHealthTable('aplicado')" class="py-3.5 px-4 text-center cursor-pointer hover:bg-emerald-100/60 transition select-none" title="Ordenar por Fecha de aplicación">
+                  <div class="flex items-center justify-center space-x-1">
+                    <span>Aplicado</span>
+                    <span id="sortIcon-aplicado" class="text-xs font-black text-slate-400">↕</span>
+                  </div>
+                </th>
+
+                <!-- 5. Apto Faena -->
+                <th onclick="sortHealthTable('apto_faena')" class="py-3.5 px-4 cursor-pointer hover:bg-emerald-100/60 transition select-none" title="Ordenar por Días faltantes de carencia">
+                  <div class="flex items-center space-x-1">
+                    <span>Apto Faena</span>
+                    <span id="sortIcon-apto_faena" class="text-xs font-black text-slate-400">↕</span>
+                  </div>
+                </th>
+
+                <!-- 6. Cantidad Consumida -->
+                <th onclick="sortHealthTable('cantidad_consumida')" class="py-3.5 px-4 text-right cursor-pointer hover:bg-emerald-100/60 transition select-none" title="Ordenar por Cantidad consumida">
+                  <div class="flex items-center justify-end space-x-1">
+                    <span>Cantidad Consumida</span>
+                    <span id="sortIcon-cantidad_consumida" class="text-xs font-black text-slate-400">↕</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="healthTreatmentsTableBody" class="divide-y divide-slate-200 text-sm sm:text-base font-medium">
+              <!-- Filas generadas dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PESTAÑA 7: HISTORIAL ==================== -->
+    <section id="view-historial" class="tab-content hidden space-y-4 max-w-3xl mx-auto">
+      <div>
+        <h2 class="text-xl sm:text-2xl font-black text-slate-900">Libro de Movimientos</h2>
+        <p class="text-xs sm:text-sm text-slate-500 font-medium">Registro de cada nacimiento, muerte o cambio de potrero</p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border-2 border-slate-200 p-4">
+        <div id="historyTimeline" class="space-y-3"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALES SIMPLES CON LENGUAJE CLARO ==================== -->
+
+  <!-- Modal: Registrar Muerte / Baja -->
+  <div id="mangaDeathModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border-2 border-rose-300">
+      <div class="flex items-center space-x-3 text-rose-600">
+        <span class="text-3xl">⚠️</span>
+        <div>
+          <h3 class="font-black text-xl text-rose-900">Registrar Baja / Muerte</h3>
+          <p id="deathCountNotice" class="text-sm font-bold text-rose-700">Se restarán 1 cabezas</p>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">¿Cuál fue la causa de la muerte?</label>
+        <select id="deathCauseSelect" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold">
+          <option value="empaste">Empaste / Hinchazón</option>
+          <option value="parto">Problema en parto (distocia)</option>
+          <option value="neumonia">Neumonía / Respiratorio</option>
+          <option value="mancha_carbunclo">Mancha / Carbunclo</option>
+          <option value="accidente">Accidente / Quebradura</option>
+          <option value="vejez_descarte">Vejez / Consumo de campo</option>
+          <option value="desconocida">Causa desconocida</option>
+        </select>
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('mangaDeathModal')" class="flex-1 py-3.5 bg-slate-100 hover:bg-slate-200 font-bold rounded-xl text-slate-700 text-base">Volver</button>
+        <button onclick="confirmMangaDeath()" class="flex-1 py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-xl text-base shadow">Confirmar Baja</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Mudar de Potrero -->
+  <div id="movePaddockModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border-2 border-blue-300">
+      <div class="flex items-center space-x-3 text-blue-700">
+        <span class="text-3xl">🚚</span>
+        <div>
+          <h3 class="font-black text-xl text-slate-900">Mudar a Otro Potrero</h3>
+          <p class="text-xs text-slate-500 font-medium">Elige a qué potrero vas a llevar los animales</p>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Potrero a donde van:</label>
+        <select id="moveDestinationPaddock" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold">
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Cantidad de cabezas a mover:</label>
+        <input type="number" id="moveQuantityInput" min="1" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-2xl">
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('movePaddockModal')" class="flex-1 py-3.5 bg-slate-100 font-bold rounded-xl text-slate-700 text-base">Cancelar</button>
+        <button onclick="confirmMovePaddock()" class="flex-1 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl text-base shadow">Mudar Ahora</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Venta de Animales -->
+  <div id="saleModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border-2 border-purple-300">
+      <div class="flex items-center space-x-3 text-purple-700">
+        <span class="text-3xl">💰</span>
+        <div>
+          <h3 class="font-black text-xl text-slate-900">Registrar Venta</h3>
+          <p id="saleNoticeText" class="text-xs font-bold text-purple-700">Se darán de baja por venta</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Cantidad de cabezas vendidas:</label>
+        <input type="number" id="saleQuantityInput" min="1" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-2xl">
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Nº de Guía / DTe / Comprador (opcional):</label>
+        <input type="text" id="saleNotesInput" placeholder="Ej: Guía 4492 - Frigorífico" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-semibold">
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('saleModal')" class="flex-1 py-3.5 bg-slate-100 font-bold rounded-xl text-slate-700 text-base">Cancelar</button>
+        <button onclick="confirmSale()" class="flex-1 py-3.5 bg-purple-700 hover:bg-purple-800 text-white font-black rounded-xl text-base shadow">Confirmar Venta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Rápido: Usar / Dar de Comer un Insumo Específico -->
+  <div id="useSupplyModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border-2 border-amber-300">
+      <div class="flex items-center space-x-3 text-amber-700">
+        <span class="text-3xl">🚜</span>
+        <div>
+          <h3 id="useSupplyTitle" class="font-black text-xl text-slate-900">Dar de comer / Usar</h3>
+          <p id="useSupplySubtitle" class="text-xs font-bold text-amber-700">Stock disponible: -</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">¿Cuánto vas a sacar/usar?</label>
+        <div class="flex items-center space-x-2">
+          <input type="number" step="0.5" id="useSupplyQuantity" value="1" min="0.1" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-2xl">
+          <span id="useSupplyUnitBadge" class="p-3.5 bg-slate-100 font-bold text-slate-700 rounded-xl text-base">kg</span>
+        </div>
+      </div>
+
+      <!-- Atajos de cantidad rápida para comida -->
+      <div class="space-y-1">
+        <span class="text-xs font-bold text-slate-500 uppercase">Cantidad rápida:</span>
+        <div class="grid grid-cols-4 gap-2">
+          <button onclick="setUseSupplyQty(1)" class="py-2 bg-slate-100 font-black text-sm rounded-lg border">1</button>
+          <button onclick="setUseSupplyQty(5)" class="py-2 bg-slate-100 font-black text-sm rounded-lg border">5</button>
+          <button onclick="setUseSupplyQty(10)" class="py-2 bg-slate-100 font-black text-sm rounded-lg border">10</button>
+          <button onclick="setUseSupplyQty(50)" class="py-2 bg-slate-100 font-black text-sm rounded-lg border">50</button>
+        </div>
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('useSupplyModal')" class="flex-1 py-3.5 bg-slate-100 font-bold rounded-xl text-slate-700">Cancelar</button>
+        <button onclick="confirmUseSupply()" class="flex-1 py-3.5 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-xl shadow">Descontar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Rápido: Agregar Compra de un Insumo Específico -->
+  <div id="addSupplyStockModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 border-2 border-emerald-300">
+      <div class="flex items-center space-x-3 text-emerald-700">
+        <span class="text-3xl">📥</span>
+        <div>
+          <h3 id="addSupplyTitle" class="font-black text-xl text-slate-900">Entró Compra al Galpón</h3>
+          <p id="addSupplySubtitle" class="text-xs font-bold text-emerald-700">Sumar stock</p>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">¿Cuánto entró?</label>
+        <div class="flex items-center space-x-2">
+          <input type="number" step="0.5" id="addSupplyQuantity" value="10" min="0.1" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-2xl">
+          <span id="addSupplyUnitBadge" class="p-3.5 bg-slate-100 font-bold text-slate-700 rounded-xl text-base">kg</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-600 mb-1">Nº Remito / Factura (opcional):</label>
+        <input type="text" id="addSupplyInvoice" placeholder="Ej: R-0104" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-semibold text-sm">
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('addSupplyStockModal')" class="flex-1 py-3.5 bg-slate-100 font-bold rounded-xl text-slate-700">Cancelar</button>
+        <button onclick="confirmAddSupplyStock()" class="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl shadow">Sumar al Galpón</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Crear Nuevo Potrero -->
+  <div id="newPaddockModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <h3 class="font-black text-xl text-slate-900">Crear Nuevo Potrero</h3>
+      
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Nombre del Potrero:</label>
+        <input type="text" id="newPaddockName" placeholder="Ej: Potrero Las Acacias" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold">
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Hectáreas (superficie):</label>
+        <input type="number" step="0.5" id="newPaddockHectares" placeholder="Ej: 150" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-2xl">
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('newPaddockModal')" class="flex-1 py-3.5 bg-slate-100 font-bold rounded-xl text-slate-700">Cancelar</button>
+        <button onclick="submitNewPaddock()" class="flex-1 py-3.5 bg-emerald-600 text-white font-black rounded-xl">Guardar Potrero</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Crear Nuevo Lote de Hacienda -->
+  <div id="newBatchModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <h3 class="font-black text-xl text-slate-900">Crear Nuevo Lote de Vacas</h3>
+      
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Nombre del Lote / Tropa:</label>
+        <input type="text" id="newBatchName" placeholder="Ej: Terneros Hereford 2026" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Tipo de animal:</label>
+          <select id="newBatchCategory" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">¿En qué potrero está?:</label>
+          <select id="newBatchPaddock" class="w-full p-3 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">¿Cuántas cabezas son?:</label>
+        <input type="number" id="newBatchHeadCount" min="1" placeholder="Ej: 50" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-2xl">
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('newBatchModal')" class="flex-1 py-3.5 bg-slate-100 font-bold rounded-xl text-slate-700">Cancelar</button>
+        <button onclick="submitNewBatch()" class="flex-1 py-3.5 bg-emerald-600 text-white font-black rounded-xl">Crear Lote</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Registro de Compra General de Insumo -->
+  <div id="supplyMovementModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      <h3 class="font-black text-xl text-slate-900">Registrar Compra de Insumos</h3>
+      
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Producto:</label>
+        <select id="supplyMoveSupplySelect" class="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold">
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-1">Galpón de descarga:</label>
+        <select id="supplyMoveWarehouseSelect" class="w-full p-3 bg-slate-50 border-2 border-slate-300 rounded-xl font-bold">
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-1">Cantidad:</label>
+          <input type="number" step="0.5" id="supplyMoveQuantity" min="0.1" placeholder="Ej: 10" class="w-full p-3.5 bg-slate-50 border-2 border-slate-300 rounded-xl font-black text-2xl">
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-slate-700 mb-1">Nº Remito:</label>
+          <input type="text" id="supplyMoveInvoice" placeholder="Ej: R-045" class="w-full p-3.5 bg-slate-50 border border-slate-300 rounded-xl font-bold">
+        </div>
+      </div>
+
+      <div class="flex space-x-3 pt-2">
+        <button onclick="closeModal('supplyMovementModal')" class="flex-1 py-3.5 bg-slate-100 font-bold rounded-xl text-slate-700">Cancelar</button>
+        <button onclick="submitSupplyMovement()" class="flex-1 py-3.5 bg-emerald-600 text-white font-black rounded-xl">Guardar Entrada</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mensaje Flotante (Toast) -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-950 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center space-x-3 transition transform translate-y-24 opacity-0 pointer-events-none border-2 border-slate-800">
+    <span id="toastEmoji" class="text-2xl">✅</span>
+    <span id="toastMsg" class="text-base font-bold">Operación guardada</span>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

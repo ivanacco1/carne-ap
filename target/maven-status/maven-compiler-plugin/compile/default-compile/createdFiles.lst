@@ -1,0 +1,17 @@
+com\agrostock\controller\LivestockController.class
+com\agrostock\dto\BatchMovementRequest.class
+com\agrostock\dto\HealthEventCreate.class
+com\agrostock\AgroStockApplication.class
+com\agrostock\config\WebConfig.class
+com\agrostock\config\DatabaseConfig.class
+com\agrostock\service\HealthService.class
+com\agrostock\controller\SupplyController.class
+com\agrostock\controller\HealthController.class
+com\agrostock\dto\PaddockCreate.class
+com\agrostock\service\SummaryService.class
+com\agrostock\controller\SummaryController.class
+com\agrostock\dto\SupplyMovementRequest.class
+com\agrostock\dto\BatchCreate.class
+com\agrostock\service\SupplyService.class
+com\agrostock\service\LivestockService.class
+com\agrostock\dto\QuickCounterUpdate.class
